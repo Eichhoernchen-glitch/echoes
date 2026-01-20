@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AR Videos</title>
+
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: black;
+      }
+    </style>
+  </head>
+
+  <body>
+    <a-scene
+      mindar-image="imageTargetSrc: assets/targets/targets.mind; uiScanning: yes; uiLoading: yes;"
+      embedded
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: true"
+    >
+      <a-assets>
+        <video id="v0" src="assets/videos/video1.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+        <video id="v1" src="assets/videos/video2.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+        <video id="v2" src="assets/videos/video3.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+        <video id="v3" src="assets/videos/video4.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+        <video id="v4" src="assets/videos/video5.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+        <video id="v5" src="assets/videos/video6.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+      </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <a-entity mindar-image-target="targetIndex: 0" video-handler="vid: #v0">
+        <a-video src="#v0" width="1" height="0.5625"></a-video>
+      </a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 1" video-handler="vid: #v1">
+        <a-video src="#v1" width="1" height="0.5625"></a-video>
+      </a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 2" video-handler="vid: #v2">
+        <a-video src="#v2" width="1" height="0.5625"></a-video>
+      </a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 3" video-handler="vid: #v3">
+        <a-video src="#v3" width="1" height="0.5625"></a-video>
+      </a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 4" video-handler="vid: #v4">
+        <a-video src="#v4" width="1" height="0.5625"></a-video>
+      </a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 5" video-handler="vid: #v5">
+        <a-video src="#v5" width="1" height="0.5625"></a-video>
+      </a-entity>
+    </a-scene>
+
+    <script>
+      AFRAME.registerComponent('video-handler', {
+        schema: { vid: { type: 'selector' } },
+        init: function () {
+          const video = this.data.vid;
+          const el = this.el;
+
+          el.addEventListener("targetFound", () => {
+            try { video.currentTime = 0; } catch(e) {}
+            const p = video.play();
+            if (p && p.catch) p.catch(()=>{});
+          });
+
+          el.addEventListener("targetLost", () => {
+            video.pause();
+            try { video.currentTime = 0; } catch(e) {}
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
