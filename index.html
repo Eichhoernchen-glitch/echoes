@@ -17,11 +17,32 @@
         background: black;
       }
     </style>
+    <style>
+  #scanText{
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    z-index: 9999;
+
+    background: rgba(0,0,0,0.65);
+    color: #fff;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    pointer-events: none;
+    user-select: none;
+  }
+</style>
+
   </head>
 
   <body>
+    <div id="scanText">scan pages…</div>
     <a-scene
-      mindar-image="imageTargetSrc: assets/targets/targets.mind; uiScanning: yes; uiLoading: yes;"
+      mindar-image="imageTargetSrc: assets/targets/targets.mind; uiScanning: yes; uiLoading: yes; filterMinCF: 0.001; filterBeta: 0.01;"
+
       embedded
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: true"
@@ -63,24 +84,54 @@
     </a-scene>
 
     <script>
-      AFRAME.registerComponent('video-handler', {
-        schema: { vid: { type: 'selector' } },
-        init: function () {
-          const video = this.data.vid;
-          const el = this.el;
+  const scanTextEl = document.getElementById("scanText");
 
-          el.addEventListener("targetFound", () => {
-            try { video.currentTime = 0; } catch(e) {}
-            const p = video.play();
-            if (p && p.catch) p.catch(()=>{});
-          });
+  AFRAME.registerComponent('video-handler', {
+    schema: { vid: { type: 'selector' } },
 
-          el.addEventListener("targetLost", () => {
-            video.pause();
-            try { video.currentTime = 0; } catch(e) {}
-          });
-        }
+    init: function () {
+      const video = this.data.vid;
+      const el = this.el;
+
+      // ===== Stabilität: kurz einfrieren =====
+      let freezeTimeout = null;
+      let frozen = false;
+
+      el.addEventListener("targetFound", () => {
+        // UI Text
+        if (scanTextEl) scanTextEl.textContent = "veil detected // reality overlay engaged";
+
+        // Video starten (autoplay)
+        try { video.currentTime = 0; } catch(e) {}
+        const p = video.play();
+        if (p && p.catch) p.catch(()=>{});
+
+        // Pose kurz einfrieren (Variante A)
+        frozen = true;
+        clearTimeout(freezeTimeout);
+        freezeTimeout = setTimeout(() => {
+          frozen = false;
+        }, 500); // 300–700ms möglich
       });
-    </script>
+
+      el.addEventListener("targetLost", () => {
+        // UI Text zurück
+        if (scanTextEl) scanTextEl.textContent = "Scan pages…";
+
+        // Video stoppen + zurücksetzen
+        video.pause();
+        try { video.currentTime = 0; } catch(e) {}
+
+        frozen = false;
+        clearTimeout(freezeTimeout);
+      });
+
+      this.tick = function () {
+        if (frozen) return; // hält Pose kurz stabil
+      };
+    }
+  });
+</script>
+
   </body>
 </html>
