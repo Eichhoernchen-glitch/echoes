@@ -19,6 +19,26 @@
     </style>
     <style>
   #scanText{
+    #tapOverlay{
+  position: fixed;
+  inset: 0;
+  display: none;              /* erst mal versteckt */
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.0); /* kein dunkler Hintergrund */
+  z-index: 10000;             /* über allem */
+}
+
+#tapBtn{
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(0,0,0,0.65);
+  color: white;
+}
+
     position: fixed;
     left: 50%;
     bottom: 18px;
@@ -40,6 +60,10 @@
 
   <body>
     <div id="scanText">scan pages…</div>
+    <div id="tapOverlay">
+  <button id="tapBtn">Tap to start</button>
+</div>
+
     <a-scene
       mindar-image="imageTargetSrc: assets/targets/targets.mind; uiScanning: yes; uiLoading: yes; filterMinCF: 0.001; filterBeta: 0.01;"
 
@@ -84,6 +108,42 @@
     </a-scene>
 
     <script>
+  // Merker: Sobald der User einmal getappt hat, dürfen wir auf iOS zuverlässig Videos starten
+  let iosUnlocked = false;
+
+  // Wir merken uns das Video, das als nächstes gestartet werden soll
+  let pendingVideo = null;
+
+  // Overlay/Button
+  const tapOverlay = document.getElementById("tapOverlay");
+  const tapBtn = document.getElementById("tapBtn");
+
+  // Hilfsfunktion: versucht Video zu starten, wenn iOS es erlaubt
+  async function tryPlay(video) {
+    try {
+      video.muted = true;
+      video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
+      const p = video.play();
+      if (p && p.catch) await p.catch(()=>{});
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Wenn der Button gedrückt wird: iOS "freischalten" und das wartende Video starten
+  tapBtn.addEventListener("click", async () => {
+    iosUnlocked = true;
+    if (tapOverlay) tapOverlay.style.display = "none";
+
+    if (pendingVideo) {
+      try { pendingVideo.currentTime = 0; } catch(e) {}
+      await tryPlay(pendingVideo);
+      pendingVideo = null;
+    }
+  });
+
   AFRAME.registerComponent('video-handler', {
     schema: { vid: { type: 'selector' } },
 
@@ -94,14 +154,21 @@
       let freezeTimeout = null;
       let frozen = false;
 
-      el.addEventListener("targetFound", () => {
+      el.addEventListener("targetFound", async () => {
         const t = document.getElementById("scanText");
-        if (t) t.textContent = "veil detected // reality overlay engaged";
+        if (t) t.textContent = "Veil detected // tap to start reality overlay";
 
-        try { video.currentTime = 0; } catch(e) {}
-        const p = video.play();
-        if (p && p.catch) p.catch(()=>{});
+        // iOS/Browser: Wenn schon einmal "unlocked", starte sofort.
+        // Wenn nicht, zeigen wir den Tap-Button und starten erst nach Tap.
+        if (iosUnlocked) {
+          try { video.currentTime = 0; } catch(e) {}
+          await tryPlay(video);
+        } else {
+          pendingVideo = video;
+          if (tapOverlay) tapOverlay.style.display = "flex";
+        }
 
+        // Stabilität (dein Freeze)
         frozen = true;
         clearTimeout(freezeTimeout);
         freezeTimeout = setTimeout(() => {
@@ -111,13 +178,19 @@
 
       el.addEventListener("targetLost", () => {
         const t = document.getElementById("scanText");
-        if (t) t.textContent = "Scan pages…";
+        if (t) t.textContent = "scan pages…";
+
+        // Wenn das Video gerade "pending" war und Target weg ist: pending löschen
+        if (pendingVideo === video) pendingVideo = null;
 
         video.pause();
         try { video.currentTime = 0; } catch(e) {}
 
         frozen = false;
         clearTimeout(freezeTimeout);
+
+        // Overlay aus, falls noch offen
+        if (tapOverlay) tapOverlay.style.display = "none";
       });
 
       this.tick = function () {
@@ -126,7 +199,6 @@
     }
   });
 </script>
-
 
   </body>
 </html>
