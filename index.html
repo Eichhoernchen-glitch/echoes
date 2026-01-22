@@ -84,8 +84,6 @@
     </a-scene>
 
     <script>
-  const scanTextEl = document.getElementById("scanText");
-
   AFRAME.registerComponent('video-handler', {
     schema: { vid: { type: 'selector' } },
 
@@ -93,32 +91,28 @@
       const video = this.data.vid;
       const el = this.el;
 
-      // ===== Stabilität: kurz einfrieren =====
       let freezeTimeout = null;
       let frozen = false;
 
       el.addEventListener("targetFound", () => {
-        // UI Text
-        if (scanTextEl) scanTextEl.textContent = "veil detected // reality overlay engaged";
+        const t = document.getElementById("scanText");
+        if (t) t.textContent = "veil detected // reality overlay engaged";
 
-        // Video starten (autoplay)
         try { video.currentTime = 0; } catch(e) {}
         const p = video.play();
         if (p && p.catch) p.catch(()=>{});
 
-        // Pose kurz einfrieren (Variante A)
         frozen = true;
         clearTimeout(freezeTimeout);
         freezeTimeout = setTimeout(() => {
           frozen = false;
-        }, 500); // 300–700ms möglich
+        }, 500);
       });
 
       el.addEventListener("targetLost", () => {
-        // UI Text zurück
-        if (scanTextEl) scanTextEl.textContent = "Scan pages…";
+        const t = document.getElementById("scanText");
+        if (t) t.textContent = "Scan pages…";
 
-        // Video stoppen + zurücksetzen
         video.pause();
         try { video.currentTime = 0; } catch(e) {}
 
@@ -127,11 +121,12 @@
       });
 
       this.tick = function () {
-        if (frozen) return; // hält Pose kurz stabil
+        if (frozen) return;
       };
     }
   });
 </script>
+
 
   </body>
 </html>
