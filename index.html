@@ -38,15 +38,21 @@
 
     <!-- Kamera + HUD (Text IM A-FRAME, daher mobil zuverlässig sichtbar) -->
     <a-camera position="0 0 0" look-controls="enabled: false">
-      <a-entity id="hud" position="0 -0.78 -1.2">
-        <a-plane width="1.95" height="0.23" opacity="0.55"></a-plane>
-        <a-entity
-          id="hudText"
-          position="0 0 0.01"
-          text="value: scan pages...; align: center; color: white; width: 2.6; wrapCount: 42; font: mozillavr;">
-        </a-entity>
-      </a-entity>
-    </a-camera>
+  <a-entity id="hud" position="0 -0.55 -1.0" scale="1 1 1">
+    <a-plane
+      width="2.1"
+      height="0.28"
+      material="color: #000; opacity: 0.55; transparent: true; side: double;">
+    </a-plane>
+
+    <a-entity
+      id="hudText"
+      position="0 0 0.01"
+      text="value: scan pages...; align: center; color: #FFF; width: 2.8; wrapCount: 50;">
+    </a-entity>
+  </a-entity>
+</a-camera>
+
 
     <!--
       Video-Seitenverhältnis: 400/250 = 1.6  => height bei width=1 wäre 0.625
