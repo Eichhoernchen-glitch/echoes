@@ -1,173 +1,159 @@
 <!doctype html>
 <html lang="de">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AR Videos</title>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AR Videos</title>
 
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-    <style>
-      html, body {
-        margin: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: black;
-      }
-    </style>
-   <style>
-  #scanText{
-    position: fixed;
-    left: 50%;
-    bottom: 18px;
-    transform: translateX(-50%);
-    z-index: 9999;
-
-    background: rgba(0,0,0,0.65);
-    color: #fff;
-    font-family: Arial, sans-serif;
-    font-size: 16px;
-    padding: 10px 14px;
-    border-radius: 999px;
-
-    pointer-events: none; /* Text muss NICHT klickbar sein */
-    user-select: none;
-  }
-</style>
-
-
-  </head>
-
-  <body>
-    <div id="scanText">scan pages…</div>
-    
-
-    <a-scene
-      mindar-image="imageTargetSrc: assets/targets/targets.mind; uiScanning: yes; uiLoading: yes; filterMinCF: 0.001; filterBeta: 0.01;"
-
-      embedded
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: true"
-    >
-      <a-assets>
-        <video id="v0" src="assets/videos/video1.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
-        <video id="v1" src="assets/videos/video2.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
-        <video id="v2" src="assets/videos/video3.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
-        <video id="v3" src="assets/videos/video4.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
-        <video id="v4" src="assets/videos/video5.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
-        <video id="v5" src="assets/videos/video6.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
-      </a-assets>
-
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-      <a-entity mindar-image-target="targetIndex: 0" video-handler="vid: #v0">
-        <a-video src="#v0" width="1" height="0.5625"></a-video>
-      </a-entity>
-
-      <a-entity mindar-image-target="targetIndex: 1" video-handler="vid: #v1">
-        <a-video src="#v1" width="1" height="0.5625"></a-video>
-      </a-entity>
-
-      <a-entity mindar-image-target="targetIndex: 2" video-handler="vid: #v2">
-        <a-video src="#v2" width="1" height="0.5625"></a-video>
-      </a-entity>
-
-      <a-entity mindar-image-target="targetIndex: 3" video-handler="vid: #v3">
-        <a-video src="#v3" width="1" height="0.5625"></a-video>
-      </a-entity>
-
-      <a-entity mindar-image-target="targetIndex: 4" video-handler="vid: #v4">
-        <a-video src="#v4" width="1" height="0.5625"></a-video>
-      </a-entity>
-
-      <a-entity mindar-image-target="targetIndex: 5" video-handler="vid: #v5">
-        <a-video src="#v5" width="1" height="0.5625"></a-video>
-      </a-entity>
-    </a-scene>
-
-   <script>
-  const scanText = document.getElementById("scanText");
-
-  let pendingVideo = null;
-  let isStarting = false;
-
-  async function startVideoFromTap(video) {
-    try {
-      video.muted = true;
-      video.setAttribute("playsinline", "");
-      video.setAttribute("webkit-playsinline", "");
-      const p = video.play();
-      if (p && p.catch) await p.catch(()=>{});
-    } catch (e) {}
-  }
-
-  // 👉 DAS ist der Tap auf den Text
-  document.body.addEventListener("click", async () => {
-  if (!pendingVideo || isStarting) return;
-async function handleUserTap() {
-  if (!pendingVideo || isStarting) return;
-
-  isStarting = true;
-  try { pendingVideo.currentTime = 0; } catch(e) {}
-  await startVideoFromTap(pendingVideo);
-
-  pendingVideo = null;
-  isStarting = false;
-}
-
-document.body.addEventListener("click", handleUserTap);
-document.body.addEventListener("touchstart", handleUserTap, { passive: true });
-
-  isStarting = true;
-  try { pendingVideo.currentTime = 0; } catch(e) {}
-  await startVideoFromTap(pendingVideo);
-
-  pendingVideo = null;
-  isStarting = false;
-});
-
-  AFRAME.registerComponent('video-handler', {
-    schema: { vid: { type: 'selector' } },
-
-    init: function () {
-      const video = this.data.vid;
-      const el = this.el;
-
-      let freezeTimeout = null;
-      let frozen = false;
-
-      el.addEventListener("targetFound", () => {
-        scanText.textContent = "Veil detected // tap to activate reality overlay";
-        pendingVideo = video;
-
-        frozen = true;
-        clearTimeout(freezeTimeout);
-        freezeTimeout = setTimeout(() => {
-          frozen = false;
-        }, 500);
-      });
-
-      el.addEventListener("targetLost", () => {
-        scanText.textContent = "scan pages…";
-
-        if (pendingVideo === video) pendingVideo = null;
-
-        video.pause();
-        try { video.currentTime = 0; } catch(e) {}
-
-        frozen = false;
-        clearTimeout(freezeTimeout);
-      });
-
-      this.tick = function () {
-        if (frozen) return;
-      };
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
     }
-  });
-</script>
 
+    #scanText{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      z-index: 9999;
 
-  </body>
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-size: 15px;
+      padding: 9px 14px;
+      border-radius: 999px;
+
+      pointer-events: none;
+      user-select: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="scanText">scan pages…</div>
+
+  <a-scene
+    mindar-image="imageTargetSrc: assets/targets/targets.mind; uiScanning: no; uiLoading: no; filterMinCF: 0.001; filterBeta: 0.01;"
+    renderer="alpha: true; antialias: true;"
+    embedded
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: true"
+  >
+
+    <a-assets>
+      <video id="v0" src="assets/videos/video1.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+      <video id="v1" src="assets/videos/video2.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+      <video id="v2" src="assets/videos/video3.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+      <video id="v3" src="assets/videos/video4.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+      <video id="v4" src="assets/videos/video5.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+      <video id="v5" src="assets/videos/video6.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+    </a-assets>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-entity mindar-image-target="targetIndex: 0" video-handler="vid: #v0">
+      <a-video src="#v0" width="1" height="0.5625"></a-video>
+    </a-entity>
+
+    <a-entity mindar-image-target="targetIndex: 1" video-handler="vid: #v1">
+      <a-video src="#v1" width="1" height="0.5625"></a-video>
+    </a-entity>
+
+    <a-entity mindar-image-target="targetIndex: 2" video-handler="vid: #v2">
+      <a-video src="#v2" width="1" height="0.5625"></a-video>
+    </a-entity>
+
+    <a-entity mindar-image-target="targetIndex: 3" video-handler="vid: #v3">
+      <a-video src="#v3" width="1" height="0.5625"></a-video>
+    </a-entity>
+
+    <a-entity mindar-image-target="targetIndex: 4" video-handler="vid: #v4">
+      <a-video src="#v4" width="1" height="0.5625"></a-video>
+    </a-entity>
+
+    <a-entity mindar-image-target="targetIndex: 5" video-handler="vid: #v5">
+      <a-video src="#v5" width="1" height="0.5625"></a-video>
+    </a-entity>
+
+  </a-scene>
+
+  <script>
+    const scanText = document.getElementById("scanText");
+
+    let pendingVideo = null;
+    let isStarting = false;
+
+    async function startVideo(video) {
+      if (!video) return;
+      try {
+        video.muted = true;
+        const p = video.play();
+        if (p && p.catch) await p.catch(()=>{});
+      } catch (e) {}
+    }
+
+    function handleUserTap() {
+      if (!pendingVideo || isStarting) return;
+
+      isStarting = true;
+      try { pendingVideo.currentTime = 0; } catch(e) {}
+      startVideo(pendingVideo).finally(() => {
+        pendingVideo = null;
+        isStarting = false;
+      });
+    }
+
+    document.body.addEventListener("click", handleUserTap);
+    document.body.addEventListener("touchstart", handleUserTap, { passive: true });
+
+    AFRAME.registerComponent('video-handler', {
+      schema: { vid: { type: 'selector' } },
+
+      init: function () {
+        const video = this.data.vid;
+        const el = this.el;
+
+        let freezeTimeout = null;
+        let frozen = false;
+
+        el.addEventListener("targetFound", () => {
+          scanText.textContent = "Veil detected // tap to activate reality overlay";
+          pendingVideo = video;
+
+          frozen = true;
+          clearTimeout(freezeTimeout);
+          freezeTimeout = setTimeout(() => {
+            frozen = false;
+          }, 500);
+        });
+
+        el.addEventListener("targetLost", () => {
+          scanText.textContent = "scan pages…";
+
+          if (pendingVideo === video) pendingVideo = null;
+
+          video.pause();
+          try { video.currentTime = 0; } catch(e) {}
+
+          frozen = false;
+          clearTimeout(freezeTimeout);
+        });
+
+        this.tick = function () {
+          if (frozen) return;
+        };
+      }
+    });
+  </script>
+
+</body>
 </html>
