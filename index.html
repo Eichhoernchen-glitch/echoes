@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>AR Videos</title>
 
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
@@ -14,41 +14,19 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: transparent;
-    }
-
-    #scanText{
-      position: fixed;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%);
-      z-index: 9999;
-
-      background: rgba(0,0,0,0.55);
-      color: #fff;
-      font-family: Arial, sans-serif;
-      font-size: 15px;
-      padding: 9px 14px;
-      border-radius: 999px;
-
-      pointer-events: none;
-      user-select: none;
+      background: transparent; /* Kamera soll sichtbar sein */
     }
   </style>
 </head>
 
 <body>
-
-  <div id="scanText">scan pages…</div>
-
   <a-scene
-    mindar-image="imageTargetSrc: assets/targets/targets.mind; uiScanning: no; uiLoading: no; filterMinCF: 0.001; filterBeta: 0.01;"
+    mindar-image="imageTargetSrc: assets/targets/targets.mind; uiScanning: yes; uiLoading: yes; filterMinCF: 0.001; filterBeta: 0.01;"
     renderer="alpha: true; antialias: true;"
     embedded
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: true"
   >
-
     <a-assets>
       <video id="v0" src="assets/videos/video1.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
       <video id="v1" src="assets/videos/video2.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
@@ -58,39 +36,58 @@
       <video id="v5" src="assets/videos/video6.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
     </a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <!-- Kamera + HUD (Text IM A-FRAME, daher mobil zuverlässig sichtbar) -->
+    <a-camera position="0 0 0" look-controls="enabled: false">
+      <a-entity id="hud" position="0 -0.78 -1.2">
+        <a-plane width="1.95" height="0.23" opacity="0.55"></a-plane>
+        <a-entity
+          id="hudText"
+          position="0 0 0.01"
+          text="value: scan pages...; align: center; color: white; width: 2.6; wrapCount: 42; font: mozillavr;">
+        </a-entity>
+      </a-entity>
+    </a-camera>
 
+    <!--
+      Video-Seitenverhältnis: 400/250 = 1.6  => height bei width=1 wäre 0.625
+      ABER: damit oben/unten nichts durchscheint, machen wir ein kleines Overscan (ca. +6%)
+      => width=1.06, height=0.6625 (0.625 * 1.06)
+    -->
     <a-entity mindar-image-target="targetIndex: 0" video-handler="vid: #v0">
-      <a-video src="#v0" width="1" height="0.5625"></a-video>
+      <a-video src="#v0" width="1.06" height="0.6625" position="0 0 0"></a-video>
     </a-entity>
 
     <a-entity mindar-image-target="targetIndex: 1" video-handler="vid: #v1">
-      <a-video src="#v1" width="1" height="0.5625"></a-video>
+      <a-video src="#v1" width="1.06" height="0.6625" position="0 0 0"></a-video>
     </a-entity>
 
     <a-entity mindar-image-target="targetIndex: 2" video-handler="vid: #v2">
-      <a-video src="#v2" width="1" height="0.5625"></a-video>
+      <a-video src="#v2" width="1.06" height="0.6625" position="0 0 0"></a-video>
     </a-entity>
 
     <a-entity mindar-image-target="targetIndex: 3" video-handler="vid: #v3">
-      <a-video src="#v3" width="1" height="0.5625"></a-video>
+      <a-video src="#v3" width="1.06" height="0.6625" position="0 0 0"></a-video>
     </a-entity>
 
     <a-entity mindar-image-target="targetIndex: 4" video-handler="vid: #v4">
-      <a-video src="#v4" width="1" height="0.5625"></a-video>
+      <a-video src="#v4" width="1.06" height="0.6625" position="0 0 0"></a-video>
     </a-entity>
 
     <a-entity mindar-image-target="targetIndex: 5" video-handler="vid: #v5">
-      <a-video src="#v5" width="1" height="0.5625"></a-video>
+      <a-video src="#v5" width="1.06" height="0.6625" position="0 0 0"></a-video>
     </a-entity>
 
   </a-scene>
 
   <script>
-    const scanText = document.getElementById("scanText");
-
+    // Tap-to-start (iOS sicher)
     let pendingVideo = null;
     let isStarting = false;
+
+    function setHudText(txt) {
+      const hud = document.getElementById("hudText");
+      if (hud) hud.setAttribute("text", "value", txt);
+    }
 
     async function startVideo(video) {
       if (!video) return;
@@ -106,6 +103,7 @@
 
       isStarting = true;
       try { pendingVideo.currentTime = 0; } catch(e) {}
+
       startVideo(pendingVideo).finally(() => {
         pendingVideo = null;
         isStarting = false;
@@ -126,9 +124,10 @@
         let frozen = false;
 
         el.addEventListener("targetFound", () => {
-          scanText.textContent = "Veil detected // tap to activate reality overlay";
+          setHudText("Veil detected // tap to activate reality overlay");
           pendingVideo = video;
 
+          // Stabilität: kurz einfrieren
           frozen = true;
           clearTimeout(freezeTimeout);
           freezeTimeout = setTimeout(() => {
@@ -137,7 +136,7 @@
         });
 
         el.addEventListener("targetLost", () => {
-          scanText.textContent = "scan pages…";
+          setHudText("scan pages...");
 
           if (pendingVideo === video) pendingVideo = null;
 
@@ -154,6 +153,5 @@
       }
     });
   </script>
-
 </body>
 </html>
