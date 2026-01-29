@@ -14,71 +14,49 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: transparent; /* Kamera drumherum sichtbar */
+      background: transparent;
     }
 
-    /* Wichtig: Canvas/Scene unten halten */
-    a-scene {
-      position: fixed !important;
-      inset: 0 !important;
-      z-index: 0 !important;
-    }
-    canvas {
+    a-scene, canvas {
       position: fixed !important;
       inset: 0 !important;
       z-index: 0 !important;
     }
 
-    /* Dein dezentes ovales Feld (immer über allem) */
+    /* Dezentes ovales Textfeld */
     #scanText{
       position: absolute;
       left: 50%;
       bottom: max(18px, env(safe-area-inset-bottom));
-      transform: translate3d(-50%, 0, 0);
-      -webkit-transform: translate3d(-50%, 0, 0);
-      will-change: transform;
+      transform: translateX(-50%);
+      z-index: 2147483647;
 
-      z-index: 2147483647; /* maximal */
-
-      /* leicht bläulich statt grau */
       background: rgba(20, 40, 70, 0.55);
-
       color: #fff;
       font-family: Arial, sans-serif;
       font-size: 15px;
       padding: 9px 14px;
       border-radius: 999px;
-
-      /* Text zentrieren */
       text-align: center;
 
       pointer-events: none;
       user-select: none;
-      -webkit-user-select: none;
     }
 
-    /* MindAR UI: Hintergrund möglichst transparent machen (Scan-Symbol behalten) */
-    .mindar-ui-overlay {
-      background: transparent !important;
-    }
-
-    /* Falls MindAR einen großen Kasten/Text zeigt, versuchen wir ihn zu entschärfen */
-    .mindar-ui-scanning, .mindar-ui-loading {
+    /* MindAR UI Styling */
+    .mindar-ui-overlay,
+    .mindar-ui-scanning,
+    .mindar-ui-loading {
       background: transparent !important;
       box-shadow: none !important;
     }
 
-    /* MindAR: den grauen Text/Panel ausblenden, Scan-Symbol bleibt */
     .mindar-ui-loading .mindar-ui-text,
     .mindar-ui-scanning .mindar-ui-text,
     .mindar-ui-loading .mindar-ui-title,
     .mindar-ui-scanning .mindar-ui-title,
     .mindar-ui-loading .mindar-ui-subtitle,
-    .mindar-ui-scanning .mindar-ui-subtitle {
-      display: none !important;
-    }
-
-    /* Manche Versionen haben ein Panel/Container */
+    .mindar-ui-scanning .mindar-ui-subtitle,
     .mindar-ui-loading .mindar-ui-panel,
     .mindar-ui-scanning .mindar-ui-panel {
       display: none !important;
@@ -87,7 +65,7 @@
 </head>
 
 <body>
-  <!-- Dein Text-Overlay (bleibt immer sichtbar) -->
+
   <div id="scanText">scan pages…</div>
 
   <a-scene
@@ -97,45 +75,46 @@
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: true"
   >
+
     <a-assets>
-      <video id="v0" src="assets/videos/video1.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
-      <video id="v1" src="assets/videos/video2.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
-      <video id="v2" src="assets/videos/video3.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
-      <video id="v3" src="assets/videos/video4.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
-      <video id="v4" src="assets/videos/video5.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
-      <video id="v5" src="assets/videos/video6.mp4" loop muted playsinline webkit-playsinline preload="auto"></video>
+      <video id="v0" src="assets/videos/video1.mp4" loop muted playsinline preload="auto"></video>
+      <video id="v1" src="assets/videos/video2.mp4" loop muted playsinline preload="auto"></video>
+      <video id="v2" src="assets/videos/video3.mp4" loop muted playsinline preload="auto"></video>
+      <video id="v3" src="assets/videos/video4.mp4" loop muted playsinline preload="auto"></video>
+      <video id="v4" src="assets/videos/video5.mp4" loop muted playsinline preload="auto"></video>
+      <video id="v5" src="assets/videos/video6.mp4" loop muted playsinline preload="auto"></video>
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- Video leicht nach links schieben: position="-0.02 0 0" -->
+    <!-- ALLE TARGETS GLEICH AUSGERICHTET -->
     <a-entity mindar-image-target="targetIndex: 0" video-handler="vid: #v0">
-      <a-video src="#v0" width="1.06" height="0.6625" position="-0.02 0 0"></a-video>
+      <a-video src="#v0" width="1.06" height="0.6625" position="-0.01 -0.01 0"></a-video>
     </a-entity>
 
     <a-entity mindar-image-target="targetIndex: 1" video-handler="vid: #v1">
-      <a-video src="#v1" width="1.06" height="0.6625" position="-0.02 0 0"></a-video>
+      <a-video src="#v1" width="1.06" height="0.6625" position="-0.01 -0.01 0"></a-video>
     </a-entity>
 
     <a-entity mindar-image-target="targetIndex: 2" video-handler="vid: #v2">
-      <a-video src="#v2" width="1.06" height="0.6625" position="-0.02 0 0"></a-video>
+      <a-video src="#v2" width="1.06" height="0.6625" position="-0.01 -0.01 0"></a-video>
     </a-entity>
 
     <a-entity mindar-image-target="targetIndex: 3" video-handler="vid: #v3">
-      <a-video src="#v3" width="1.06" height="0.6625" position="-0.02 0 0"></a-video>
+      <a-video src="#v3" width="1.06" height="0.6625" position="-0.01 -0.01 0"></a-video>
     </a-entity>
 
     <a-entity mindar-image-target="targetIndex: 4" video-handler="vid: #v4">
-      <a-video src="#v4" width="1.06" height="0.6625" position="-0.02 0 0"></a-video>
+      <a-video src="#v4" width="1.06" height="0.6625" position="-0.01 -0.01 0"></a-video>
     </a-entity>
 
     <a-entity mindar-image-target="targetIndex: 5" video-handler="vid: #v5">
-      <a-video src="#v5" width="1.06" height="0.6625" position="-0.02 0 0"></a-video>
+      <a-video src="#v5" width="1.06" height="0.6625" position="-0.01 -0.01 0"></a-video>
     </a-entity>
+
   </a-scene>
 
   <script>
-    // Tap-to-start (iOS sicher)
     let pendingVideo = null;
     let isStarting = false;
 
@@ -150,12 +129,11 @@
         video.muted = true;
         const p = video.play();
         if (p && p.catch) await p.catch(()=>{});
-      } catch (e) {}
+      } catch(e) {}
     }
 
     function handleUserTap() {
       if (!pendingVideo || isStarting) return;
-
       isStarting = true;
       try { pendingVideo.currentTime = 0; } catch(e) {}
 
@@ -174,29 +152,22 @@
       init: function () {
         const video = this.data.vid;
         const el = this.el;
-
         let freezeTimeout = null;
         let frozen = false;
 
         el.addEventListener("targetFound", () => {
           setScanText("Veil detected // tap to activate reality overlay");
           pendingVideo = video;
-
           frozen = true;
           clearTimeout(freezeTimeout);
-          freezeTimeout = setTimeout(() => {
-            frozen = false;
-          }, 500);
+          freezeTimeout = setTimeout(() => frozen = false, 500);
         });
 
         el.addEventListener("targetLost", () => {
           setScanText("scan pages…");
-
           if (pendingVideo === video) pendingVideo = null;
-
           video.pause();
           try { video.currentTime = 0; } catch(e) {}
-
           frozen = false;
           clearTimeout(freezeTimeout);
         });
@@ -207,5 +178,6 @@
       }
     });
   </script>
+
 </body>
 </html>
