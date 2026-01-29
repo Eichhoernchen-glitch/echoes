@@ -31,7 +31,7 @@
 
     /* Dein dezentes ovales Feld (immer über allem) */
     #scanText{
-      position: fixed;
+      position: absolute;
       left: 50%;
       bottom: max(18px, env(safe-area-inset-bottom));
       transform: translate3d(-50%, 0, 0);
@@ -61,6 +61,21 @@
       background: transparent !important;
       box-shadow: none !important;
     }
+    /* MindAR: den grauen Text/Panel ausblenden, Scan-Symbol bleibt */
+.mindar-ui-loading .mindar-ui-text,
+.mindar-ui-scanning .mindar-ui-text,
+.mindar-ui-loading .mindar-ui-title,
+.mindar-ui-scanning .mindar-ui-title,
+.mindar-ui-loading .mindar-ui-subtitle,
+.mindar-ui-scanning .mindar-ui-subtitle {
+  display: none !important;
+}
+
+/* Manche Versionen haben ein Panel/Container */
+.mindar-ui-loading .mindar-ui-panel,
+.mindar-ui-scanning .mindar-ui-panel {
+  display: none !important;
+}
   </style>
 </head>
 
